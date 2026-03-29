@@ -6,6 +6,7 @@ import {
   logout,
   forgotPassword,
   resetPassword,
+  verifyEmail,
   getMe,
 } from '../controllers/authController';
 import { auth } from '../middlewares/authMiddleware';
@@ -22,6 +23,7 @@ const router = Router();
 router.post('/register', authLimiter, validateRegister, register);
 router.post('/login', authLimiter, validateLogin, login);
 router.post('/refresh-token', refreshTokenHandler);
+router.post('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPasswordLimiter, validateForgotPassword, forgotPassword);
 router.post('/reset-password', validateResetPassword, resetPassword);
 

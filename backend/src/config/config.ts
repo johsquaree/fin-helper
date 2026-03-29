@@ -9,6 +9,14 @@ interface Config {
   jwtRefreshSecret: string;
   nodeEnv: string;
   allowedOrigins: string[];
+  appUrl: string;
+  email: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+  };
 }
 
 const config: Config = {
@@ -20,6 +28,14 @@ const config: Config = {
   allowedOrigins: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
     : ['http://localhost:3000', 'http://localhost:8081'],
+  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  email: {
+    host: process.env.EMAIL_HOST || 'sandbox.smtp.mailtrap.io',
+    port: Number(process.env.EMAIL_PORT) || 2525,
+    user: process.env.EMAIL_USER || '',
+    pass: process.env.EMAIL_PASS || '',
+    from: process.env.EMAIL_FROM || 'noreply@finhelper.com',
+  },
 };
 
 export { config };

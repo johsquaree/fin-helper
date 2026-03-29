@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User';
 import { config } from '../config/config';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/emailService';
 
 const generateTokens = (userId: string) => {
   const accessToken = jwt.sign({ userId }, config.jwtSecret, { expiresIn: '15m' });
@@ -28,6 +29,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       emailVerificationToken: crypto.createHash('sha256').update(emailVerificationToken).digest('hex'),
     });
     await user.save();
+
+    // Send verification email (non-blocking — don't fail registration if email fails)
+    sendVerificationEmail(email, name, emailVerificationToken).catch(() => {});
 
     const { accessToken, refreshToken } = generateTokens(String(user._id));
 
@@ -111,6 +115,32 @@ export const logout = async (_req: Request, res: Response): Promise<void> => {
   res.json({ message: 'Başarıyla çıkış yapıldı' });
 };
 
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      res.status(400).json({ message: 'Token gerekli' });
+      return;
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({ emailVerificationToken: hashedToken });
+
+    if (!user) {
+      res.status(400).json({ message: 'Geçersiz veya süresi dolmuş token' });
+      return;
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    res.json({ message: 'E-posta adresiniz başarıyla doğrulandı' });
+  } catch (error) {
+    res.status(500).json({ message: 'E-posta doğrulama sırasında hata oluştu' });
+  }
+};
+
 export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email } = req.body;
@@ -125,7 +155,17 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    // TODO: E-posta servisi entegre edildiğinde nodemailer eklenecek
+    try {
+      await sendPasswordResetEmail(email, user.name, resetToken);
+    } catch {
+      // Roll back token if email fails
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      res.status(500).json({ message: 'E-posta gönderilemedi, lütfen tekrar deneyin' });
+      return;
+    }
+
     const responseData: Record<string, string> = {
       message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
     };
