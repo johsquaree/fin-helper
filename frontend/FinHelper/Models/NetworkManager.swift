@@ -34,7 +34,7 @@ enum NetworkError: Error {
 
 class NetworkManager {
     static let shared = NetworkManager()
-    private let baseURL = "http://192.168.0.100:3001"
+    private let baseURL = "https://fin-helper-production.up.railway.app"
 
     private var accessToken: String?
     private var refreshToken: String?
