@@ -1,13 +1,18 @@
 import SwiftUI
 
 struct InviteGroupView: View {
-    let group: Group
+    let groupId: UUID
+    @ObservedObject var viewModel: MainViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var copied = false
 
-    private var inviteCode: String { group.inviteCode ?? "------" }
+    private var currentGroup: Group? { viewModel.groups.first(where: { $0.id == groupId }) }
+    private var inviteCode: String { currentGroup?.inviteCode ?? "------" }
     private var inviteLink: String { "finhelper://join/\(inviteCode)" }
-    private var shareText: String { "\(group.icon) \(group.name) grubuna katılmak için FinHelper uygulamasını indir ve bu kodu gir: \(inviteCode)\n\nVeya linke tıkla: \(inviteLink)" }
+    private var shareText: String {
+        guard let g = currentGroup else { return "" }
+        return "\(g.icon) \(g.name) grubuna katılmak için FinHelper uygulamasını indir ve bu kodu gir: \(inviteCode)\n\nVeya linke tıkla: \(inviteLink)"
+    }
 
     var body: some View {
         NavigationView {
@@ -15,9 +20,9 @@ struct InviteGroupView: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    Text(group.icon)
+                    Text(currentGroup?.icon ?? "👥")
                         .font(.system(size: 56))
-                    Text(group.name)
+                    Text(currentGroup?.name ?? "")
                         .font(.title2)
                         .fontWeight(.bold)
                     Text("Arkadaşlarını bu grup için davet et")

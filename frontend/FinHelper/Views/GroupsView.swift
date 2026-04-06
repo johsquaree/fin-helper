@@ -163,7 +163,7 @@ struct GroupDetailView: View {
             PersonDebtDetailView(person: wrapper.name, group: group, viewModel: viewModel)
         }
         .sheet(isPresented: $showingInviteSheet) {
-            InviteGroupView(group: group)
+            InviteGroupView(groupId: group.id, viewModel: viewModel)
         }
         .confirmationDialog("Grubu silmek istediğine emin misin?",
                             isPresented: $showDeleteConfirm, titleVisibility: .visible) {
