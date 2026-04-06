@@ -8,10 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Binding var pendingInviteCode: String?
     @StateObject private var viewModel = MainViewModel()
     @State private var selectedTab = 0
+    @State private var showingJoinGroup = false
     @AppStorage("darkMode") private var darkMode = false
-    
+
+    init(pendingInviteCode: Binding<String?> = .constant(nil)) {
+        _pendingInviteCode = pendingInviteCode
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             // Cüzdan sekmesi
@@ -54,6 +60,15 @@ struct ContentView: View {
         }
         .onChange(of: darkMode) { _, newValue in
             updateAppearance(isDark: newValue)
+        }
+        .onChange(of: pendingInviteCode) { _, code in
+            if code != nil {
+                selectedTab = 1
+                showingJoinGroup = true
+            }
+        }
+        .sheet(isPresented: $showingJoinGroup, onDismiss: { pendingInviteCode = nil }) {
+            JoinGroupView(viewModel: viewModel, initialCode: pendingInviteCode ?? "")
         }
     }
     

@@ -9,9 +9,19 @@ import SwiftUI
 
 @main
 struct FinHelperApp: App {
+    @State private var pendingInviteCode: String? = nil
+
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            SplashView(pendingInviteCode: $pendingInviteCode)
+                .onOpenURL { url in
+                    // finhelper://join/INVITECODE
+                    guard url.scheme == "finhelper",
+                          url.host == "join",
+                          let code = url.pathComponents.dropFirst().first
+                    else { return }
+                    pendingInviteCode = code
+                }
         }
     }
 }

@@ -1,13 +1,18 @@
 import SwiftUI
 
 struct SplashView: View {
+    @Binding var pendingInviteCode: String?
     @State private var isActive = false
     @State private var size = 0.8
     @State private var opacity = 0.5
-    
+
+    init(pendingInviteCode: Binding<String?> = .constant(nil)) {
+        _pendingInviteCode = pendingInviteCode
+    }
+
     var body: some View {
         if isActive {
-            LoginView()
+            LoginView(pendingInviteCode: $pendingInviteCode)
         } else {
             VStack {
                 VStack {

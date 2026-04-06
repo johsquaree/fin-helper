@@ -193,6 +193,11 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    func joinGroup(inviteCode: String) async throws {
+        let _ = try await NetworkManager.shared.joinGroupByInviteCode(inviteCode)
+        await MainActor.run { loadGroups() }
+    }
+
     // MARK: - User Operations
     
     func clearUserData() {

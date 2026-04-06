@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    @Binding var pendingInviteCode: String?
     @StateObject private var authViewModel = AuthViewModel()
     @State private var email = ""
     @State private var password = ""
@@ -8,6 +9,10 @@ struct LoginView: View {
     @State private var showingSignUp = false
     @State private var showingForgotPassword = false
     @AppStorage("selectedLanguage") private var selectedLanguage = "tr"
+
+    init(pendingInviteCode: Binding<String?> = .constant(nil)) {
+        _pendingInviteCode = pendingInviteCode
+    }
     
     var body: some View {
         NavigationView {
@@ -143,7 +148,7 @@ struct LoginView: View {
             get: { authViewModel.isAuthenticated },
             set: { _ in }
         )) {
-            ContentView()
+            ContentView(pendingInviteCode: $pendingInviteCode)
         }
     }
     

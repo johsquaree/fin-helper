@@ -8,9 +8,10 @@ struct Group: Identifiable, Codable {
     var expenses: [Expense]
     var date: Date
     var icon: String
-    
+    var inviteCode: String?
+
     enum CodingKeys: String, CodingKey {
-        case id, name, members, expenses, date, icon
+        case id, name, members, expenses, date, icon, inviteCode
     }
     
     // Gruptaki toplam harcama (borç ödemeleri hariç)

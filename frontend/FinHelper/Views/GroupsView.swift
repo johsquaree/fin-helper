@@ -4,6 +4,7 @@ import SwiftUI
 struct GroupsView: View {
     @ObservedObject var viewModel: MainViewModel
     @State private var showingCreateGroup = false
+    @State private var showingJoinGroup = false
 
     var body: some View {
         NavigationView {
@@ -35,6 +36,11 @@ struct GroupsView: View {
             }
             .navigationTitle("Gruplar")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { showingJoinGroup = true } label: {
+                        Image(systemName: "person.badge.plus")
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { showingCreateGroup = true } label: {
                         Image(systemName: "plus")
@@ -43,6 +49,9 @@ struct GroupsView: View {
             }
             .sheet(isPresented: $showingCreateGroup) {
                 CreateGroupView(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showingJoinGroup) {
+                JoinGroupView(viewModel: viewModel)
             }
         }
     }
@@ -88,6 +97,7 @@ struct GroupDetailView: View {
     @State private var selectedPerson: String?
     @State private var showingEditGroup = false
     @State private var showDeleteConfirm = false
+    @State private var showingInviteSheet = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -117,6 +127,9 @@ struct GroupDetailView: View {
                     Menu {
                         Button { showingEditGroup = true } label: {
                             Label("Düzenle", systemImage: "pencil")
+                        }
+                        Button { showingInviteSheet = true } label: {
+                            Label("Davet Et", systemImage: "person.badge.plus")
                         }
                         Button(role: .destructive) {
                             showDeleteConfirm = true
@@ -148,6 +161,9 @@ struct GroupDetailView: View {
             set: { _ in selectedPerson = nil }
         )) { wrapper in
             PersonDebtDetailView(person: wrapper.name, group: group, viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingInviteSheet) {
+            InviteGroupView(group: group)
         }
         .confirmationDialog("Grubu silmek istediğine emin misin?",
                             isPresented: $showDeleteConfirm, titleVisibility: .visible) {

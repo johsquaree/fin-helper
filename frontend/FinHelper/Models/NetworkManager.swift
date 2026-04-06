@@ -177,4 +177,21 @@ class NetworkManager {
 
         setTokens(accessToken: newAccessToken, refreshToken: newRefreshToken)
     }
+
+    func joinGroupByInviteCode(_ inviteCode: String) async throws -> [String: Any] {
+        let body = try JSONSerialization.data(withJSONObject: ["inviteCode": inviteCode])
+        guard let url = URL(string: baseURL + "/api/groups/join") else { throw NetworkError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+        if let token = accessToken { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        request.httpBody = body
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw NetworkError.serverError("Geçersiz yanıt") }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw NetworkError.serverError("Yanıt işlenemedi") }
+        if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 { return json }
+        let msg = json["message"] as? String ?? "Hata"
+        throw NetworkError.serverError(msg)
+    }
 }
