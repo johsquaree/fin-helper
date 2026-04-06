@@ -10,9 +10,15 @@ struct SplashView: View {
         _pendingInviteCode = pendingInviteCode
     }
 
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+
     var body: some View {
         if isActive {
-            LoginView(pendingInviteCode: $pendingInviteCode)
+            if hasSeenOnboarding {
+                LoginView(pendingInviteCode: $pendingInviteCode)
+            } else {
+                OnboardingView()
+            }
         } else {
             VStack {
                 VStack {
