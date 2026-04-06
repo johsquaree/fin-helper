@@ -34,10 +34,12 @@ enum NetworkError: Error {
 
 class NetworkManager {
     static let shared = NetworkManager()
-    private let baseURL = "https://fin-helper-production.up.railway.app"
+    let baseURL = "https://fin-helper-production.up.railway.app"
 
     private var accessToken: String?
     private var refreshToken: String?
+
+    var currentAccessToken: String? { accessToken }
 
     enum HTTPMethod: String {
         case get = "GET"

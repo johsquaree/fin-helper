@@ -130,15 +130,30 @@ class MainViewModel: ObservableObject {
     }
     
     func createGroup(name: String, members: [String], icon: String) {
-        let newGroup = Group(
-            name: name,
-            members: members,
-            expenses: [],
-            date: Date(),
-            icon: icon
-        )
-        groups.append(newGroup)
-        saveGroups()
+        Task {
+            let inviteCode = await fetchInviteCode(name: name, members: members, icon: icon)
+            await MainActor.run {
+                var newGroup = Group(name: name, members: members, expenses: [], date: Date(), icon: icon)
+                newGroup.inviteCode = inviteCode
+                groups.append(newGroup)
+                saveGroups()
+            }
+        }
+    }
+
+    private func fetchInviteCode(name: String, members: [String], icon: String) async -> String? {
+        guard let body = try? JSONSerialization.data(withJSONObject: ["name": name, "members": members, "icon": icon]),
+              let url = URL(string: NetworkManager.shared.baseURL + "/api/groups") else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        if let token = NetworkManager.shared.currentAccessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return json["inviteCode"] as? String
     }
     
     func addExpense(to group: Group, title: String, amount: Double, paidBy: String, splitBetween: [String], category: ExpenseCategory, customEmoji: String? = nil, photoData: Data? = nil) {
